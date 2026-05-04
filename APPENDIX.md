@@ -30,6 +30,8 @@ The robust-training comparison uses two additional settings: the same custom CNN
 
 ## Training Commands
 
+All training runs use the same Hugging Face dataset `tanganke/gtsrb`, the same image size of 96 x 96, the same 43-class label space, the same stratified train/validation split, and the same final official clean test split. The split settings are `seed=242` and `val_fraction=0.15`, producing 22,644 training images and 3,996 validation images from the original training split. The official 12,630-image `test` split is reserved for final evaluation only.
+
 Custom CNN:
 
 ```powershell

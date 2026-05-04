@@ -41,6 +41,8 @@ If you are installing PyTorch for a local RTX 2080 Ti, follow the current comman
 
 The training scripts use the Hugging Face dataset `tanganke/gtsrb`. The clean splits are `train` and `test`; corrupted evaluation splits are configured in `src/gtsrb_robustness/config.py`.
 
+For the reported comparisons, all models use the same stratified split of the original training data: 22,644 training images and 3,996 validation images with `seed=242` and `val_fraction=0.15`. The official 12,630-image `test` split is used only for final evaluation.
+
 ```powershell
 python -m gtsrb_robustness.explore_data --output-dir outputs/eda
 ```
