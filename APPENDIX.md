@@ -26,7 +26,7 @@ Architecture:
 | Block 4 | Conv2d 128->256, BatchNorm, ReLU, AdaptiveAvgPool | 256 features | Global aggregation |
 | Classifier | Flatten, Dropout p=0.35, Linear 256->43 | 43 logits | Regularization and multiclass classification |
 
-The advanced comparison model is ResNet18 with ImageNet pretrained weights, RandAugment, and MixUp.
+The robust-training comparison uses two additional settings: the same custom CNN with RandAugment/MixUp, and ResNet18 with ImageNet pretrained weights, RandAugment, and MixUp.
 
 ## Training Commands
 
@@ -41,6 +41,12 @@ CNN ablations:
 ```powershell
 python -m gtsrb_robustness.train --model baseline_cnn_no_bn --epochs 12 --batch-size 128 --output-dir runs/baseline_cnn_no_bn
 python -m gtsrb_robustness.train --model baseline_cnn_no_dropout --epochs 12 --batch-size 128 --output-dir runs/baseline_cnn_no_dropout
+```
+
+Custom CNN with robust training:
+
+```powershell
+python -m gtsrb_robustness.train --model baseline_cnn --epochs 12 --batch-size 128 --use-randaugment --mixup-alpha 0.2 --output-dir runs/baseline_cnn_augmix --num-workers 0
 ```
 
 Main robust ResNet18:
@@ -61,6 +67,7 @@ Custom CNN and ablation evaluation:
 
 ```powershell
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn/best.pt --model baseline_cnn --output-dir outputs/baseline_cnn --num-workers 0 --skip-corruptions
+python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_augmix/best.pt --model baseline_cnn --output-dir outputs/baseline_cnn_augmix --num-workers 0 --skip-corruptions
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_no_bn/best.pt --model baseline_cnn_no_bn --output-dir outputs/baseline_cnn_no_bn --num-workers 0 --skip-corruptions
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_no_dropout/best.pt --model baseline_cnn_no_dropout --output-dir outputs/baseline_cnn_no_dropout --num-workers 0 --skip-corruptions
 ```
@@ -70,17 +77,21 @@ python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_no_dropout/be
 | Model | Best validation accuracy | Clean test accuracy | Clean test macro F1 |
 |---|---:|---:|---:|
 | Custom CNN | 78.03% | 58.99% | 39.26% |
+| Custom CNN + RandAugment/MixUp | 66.09% | 54.43% | 34.25% |
 | CNN without BatchNorm | 20.85% | 19.21% | 6.02% |
 | CNN without Dropout | 50.03% | 39.05% | 21.06% |
 | ResNet18 + RandAugment/MixUp | 99.97% | 98.76% | 98.33% |
 
 Calibration for the final ResNet18 reduced expected calibration error from 6.36% to 3.04%.
 
+The custom CNN with RandAugment/MixUp did not improve over the plain custom CNN in the 12-epoch run. This is an important ablation result: the augmentation strategy made the task harder and acted as stronger regularization, but the small CNN did not have enough capacity or training time to benefit from it. The same robust-training idea worked much better with ResNet18.
+
 ## Diagnostic Figures
 
 Core figures:
 
 - `outputs/model_comparison_ablation.png`
+- `outputs/cnn_augmix_resnet_comparison.png`
 - `outputs/resnet18_robust/training_curves.png`
 - `outputs/resnet18_robust/robustness_by_corruption.png`
 - `outputs/resnet18_robust/reliability_diagram.png`

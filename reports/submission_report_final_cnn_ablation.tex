@@ -53,12 +53,12 @@ Team: [Insert names]
 
 Interactive demo: \url{https://huggingface.co/spaces/Theo9598/gtsrb-reliability-workbench}
 
-GitHub appendix: [Insert GitHub repository URL]/blob/main/APPENDIX.md
+GitHub appendix: \url{https://github.com/Theo9598/gtsrb-reliability/blob/master/APPENDIX.md}
 
 Presentation recording: [Insert recording link before Gradescope submission]
 
 \section*{Abstract}
-We study traffic sign recognition as a 43-class image classification task using the German Traffic Sign Recognition Benchmark (GTSRB). To match the course emphasis on building a model, we first train our own convolutional neural network from scratch, then compare it with a stronger ImageNet-pretrained ResNet18 trained with RandAugment and MixUp. The custom CNN reaches 58.99\% clean test accuracy, while the final ResNet18 reaches 98.76\% accuracy and 98.33\% macro F1. We also run a CNN ablation study: removing BatchNorm drops clean test accuracy to 19.21\%, and removing Dropout drops it to 39.05\%, showing why these course concepts matter. Because traffic sign recognition is safety-relevant, we evaluate visual corruptions, apply temperature scaling to reduce expected calibration error from 6.36\% to 3.04\%, and deploy a Streamlit demo with upload, corruption, top-5 prediction, and Grad-CAM features.
+We study traffic sign recognition as a 43-class image classification task using the German Traffic Sign Recognition Benchmark (GTSRB). To match the course emphasis on building a model, we train our own convolutional neural network from scratch and compare it against two stronger training conditions: the same CNN with RandAugment and MixUp, and an ImageNet-pretrained ResNet18 with RandAugment and MixUp. The custom CNN reaches 58.99\% clean test accuracy, the custom CNN with robust training reaches 54.43\%, and the final ResNet18 reaches 98.76\% accuracy and 98.33\% macro F1. This result shows that advanced augmentation is not automatically beneficial for a small from-scratch model, but is highly effective when paired with a higher-capacity pretrained backbone. We also run a CNN ablation study: removing BatchNorm drops clean test accuracy to 19.21\%, and removing Dropout drops it to 39.05\%, showing why these course concepts matter. Because traffic sign recognition is safety-relevant, we evaluate visual corruptions, apply temperature scaling to reduce expected calibration error from 6.36\% to 3.04\%, and deploy a Streamlit demo with upload, corruption, top-5 prediction, and Grad-CAM features.
 
 \section{Motivation and Learning Problem}
 Traffic sign recognition is a core perception task for driver-assistance and autonomous vehicle research. A useful classifier should perform well not only on clean benchmark images, but also under realistic image degradation caused by motion, compression, lighting, camera quality, or weather. A wrong prediction on a stop sign, no-entry sign, or speed-limit sign could be dangerous if a downstream system over-trusts the classifier.
@@ -75,7 +75,7 @@ We use the Hugging Face GTSRB dataset \texttt{tanganke/gtsrb}, with 26,640 train
 The dataset contains cropped signs, so this project studies classification rather than object detection in full road scenes. To measure reliability, we evaluate on both locally generated corruptions and the dataset's corrupted splits. Local corruptions include Gaussian noise, blur, JPEG compression, pixelation, and low contrast. The provided corrupted splits include contrast, Gaussian noise, impulse noise, JPEG compression, motion blur, pixelate, and spatter. This lets us compare clean benchmark performance to performance under degraded visual conditions.
 
 \section{Methodology}
-The project uses two model levels so that the report includes both a course-aligned model and an advanced comparison model. The course-aligned model is a custom CNN trained from scratch, meaning all convolutional, BatchNorm, and classifier weights are randomly initialized and learned only from the GTSRB training set. The advanced model is an ImageNet-pretrained ResNet18, used to test how much transfer learning and robust augmentation improve performance beyond the self-built CNN baseline.
+The project uses three model conditions so that the report includes a course-aligned model, a training-method comparison, and an advanced transfer-learning model. The course-aligned model is a custom CNN trained from scratch, meaning all convolutional, BatchNorm, and classifier weights are randomly initialized and learned only from the GTSRB training set. We then train the same CNN with RandAugment and MixUp to test whether the robust training method helps the self-built model. Finally, we train an ImageNet-pretrained ResNet18 with the same robust training strategy to test how much transfer learning and model capacity improve performance.
 
 \subsection*{Custom CNN architecture.}
 The custom CNN follows the standard lecture pipeline for image classification: convolutional filters produce feature maps, ReLU adds nonlinearity, pooling reduces spatial resolution, BatchNorm stabilizes intermediate activations, Dropout regularizes the classifier, and a final linear layer outputs 43 logits. The logits are trained with multiclass cross-entropy, which combines the softmax probability model with the negative log-likelihood of the true traffic sign class.
@@ -103,31 +103,48 @@ Both models are trained with minibatches and multiclass cross-entropy. For the c
 Our advanced methodology beyond the standard CNN pipeline is robust training with RandAugment and MixUp. RandAugment randomly applies image transformations so the model learns useful invariances. MixUp forms convex combinations of images and labels, encouraging smoother decision boundaries and reducing overconfident memorization. We also add two deployment-aware components: temperature scaling calibrates confidence by rescaling logits before softmax, and Grad-CAM visualizes which image regions influence the prediction.
 
 \section{Results}
-The custom CNN and ablation models were trained for 12 epochs from scratch. The full custom CNN reached 78.03\% validation accuracy and 58.99\% clean test accuracy. Removing BatchNorm caused the model to learn poorly, reaching only 20.85\% validation accuracy and 19.21\% clean test accuracy. Removing Dropout was less damaging but still reduced clean test accuracy to 39.05\%. The final ResNet18 model trained for 25 epochs on an NVIDIA GeForce RTX 2080 Ti and reached 99.97\% validation accuracy, 98.76\% clean test accuracy, and 98.33\% macro F1.
+The custom CNN was trained for 12 epochs from scratch. It reached 78.03\% validation accuracy and 58.99\% clean test accuracy. The same CNN trained with RandAugment and MixUp reached 66.09\% validation accuracy and 54.43\% clean test accuracy. This lower result is useful experimentally: strong augmentation and MixUp regularize the model, but the small CNN does not have enough capacity or training time to benefit from them under the current setting. The final ResNet18 model trained for 25 epochs on an NVIDIA GeForce RTX 2080 Ti and reached 99.97\% validation accuracy, 98.76\% clean test accuracy, and 98.33\% macro F1.
 
 \begin{table}[H]
 \centering
-\caption{Model comparison and ablation results.}
-\footnotesize
-\begin{tabular}{p{1.35in}p{0.75in}p{2.45in}p{1.25in}}
+\caption{Main model and robust-training comparison.}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{1.35in}p{0.52in}p{0.62in}p{1.58in}p{1.05in}}
 \toprule
-Model & Pretrained? & Metrics (\%) & Delta vs Full CNN \\
+Model & Pretrained? & Robust training? & Metrics (\%) & Interpretation \\
 \midrule
-Full custom CNN & No & Val 78.03; Test 58.99; F1 39.26 & Baseline \\
-No BatchNorm & No & Val 20.85; Test 19.21; F1 6.02 & -39.78 pp \\
-No Dropout & No & Val 50.03; Test 39.05; F1 21.06 & -19.94 pp \\
-ResNet18 robust & Yes & Val 99.97; Test 98.76; F1 98.33 & +39.77 pp \\
+Custom CNN & No & No & Val 78.03; Test 58.99; F1 39.26 & Course baseline \\
+Custom CNN + RandAugment/MixUp & No & Yes & Val 66.09; Test 54.43; F1 34.25 & Strong regularization hurt this small model \\
+ResNet18 + RandAugment/MixUp & Yes & Yes & Val 99.97; Test 98.76; F1 98.33 & Final high-performing model \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=5.7in]{model_comparison_ablation.png}
-\caption{Model comparison and CNN ablation study.}
+\includegraphics[width=5.7in]{cnn_augmix_resnet_comparison.png}
+\caption{Custom CNN, robustly trained CNN, and robustly trained ResNet18 comparison.}
 \end{figure}
 
-Table 2 reports the numerical comparison directly. The full custom CNN is the from-scratch course model, so the ablation rows measure how much performance changes when one component is removed. Removing BatchNorm drops clean-test accuracy by 39.78 percentage points, and removing Dropout drops it by 19.94 percentage points. The ResNet18 model is included as the advanced pretrained comparison and improves clean-test accuracy by 39.77 percentage points over the full custom CNN.
+Table 2 reports the main comparison directly. The first row is the self-built course model. The second row isolates the effect of adding RandAugment and MixUp to the same CNN architecture. In this run, robust training reduces clean-test accuracy by 4.56 percentage points, which suggests that the small from-scratch CNN is under-capacity or under-trained for this stronger regularization. The third row shows that the same robust training idea is much more effective when paired with a pretrained ResNet18 backbone, improving clean-test accuracy by 39.77 percentage points over the plain custom CNN.
+
+\begin{table}[H]
+\centering
+\caption{Custom CNN ablation results.}
+\footnotesize
+\begin{tabular}{p{1.45in}p{0.75in}p{2.45in}p{1.15in}}
+\toprule
+Model & Pretrained? & Metrics (\%) & Delta vs Full CNN \\
+\midrule
+Full custom CNN & No & Val 78.03; Test 58.99; F1 39.26 & Baseline \\
+No BatchNorm & No & Val 20.85; Test 19.21; F1 6.02 & -39.78 pp \\
+No Dropout & No & Val 50.03; Test 39.05; F1 21.06 & -19.94 pp \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ablation in Table 3 supports the course concepts inside the custom CNN. Removing BatchNorm causes the largest drop, which means normalization is important for stable training in this architecture. Removing Dropout also hurts performance, showing that regularization helps the classifier generalize beyond the training split.
 
 \begin{figure}[H]
 \centering
@@ -197,7 +214,7 @@ Calibration also improves meaningfully. Expected calibration error decreases fro
 \end{figure}
 
 \section{Interactive Tool and Bonus Component}
-We deploy a Streamlit workbench on Hugging Face Spaces: \url{https://huggingface.co/spaces/Theo9598/gtsrb-reliability-workbench}. The tool lets users upload a traffic sign image, view top-5 predictions, apply realistic corruptions, adjust calibration temperature, and inspect Grad-CAM heatmaps. This interaction directly supports the project thesis: users can test whether a prediction remains stable when the image is degraded, rather than only seeing one clean-image classification result. The complete appendix, commands, source-code map, and additional diagnostic figures are maintained in the GitHub repository appendix: [Insert GitHub repository URL]/blob/main/APPENDIX.md.
+We deploy a Streamlit workbench on Hugging Face Spaces: \url{https://huggingface.co/spaces/Theo9598/gtsrb-reliability-workbench}. The tool lets users upload a traffic sign image, view top-5 predictions, apply realistic corruptions, adjust calibration temperature, and inspect Grad-CAM heatmaps. This interaction directly supports the project thesis: users can test whether a prediction remains stable when the image is degraded, rather than only seeing one clean-image classification result. The complete appendix, commands, source-code map, and additional diagnostic figures are maintained in the GitHub repository appendix: \url{https://github.com/Theo9598/gtsrb-reliability/blob/master/APPENDIX.md}.
 
 \section{Safety, Security, and Ethics}
 This project should be treated as an educational prototype, not a deployable autonomous driving component. It classifies cropped signs but does not detect signs in full road scenes. It also does not handle occlusion, night driving, unusual weather, camera motion, vandalized signs, adversarial stickers, or map context.
@@ -207,6 +224,6 @@ False predictions can be safety-critical. Misclassifying a stop sign, no-entry s
 A real deployment would require uncertainty thresholds, out-of-distribution detection, redundant sensors, human oversight, extensive field testing, and regulatory review. For this reason, the demo includes an educational-use disclaimer.
 
 \section{Conclusion}
-This project applies deep learning methodology to a real image classification problem and extends it with robustness, calibration, interpretability, and deployment analysis. The custom CNN architecture demonstrates course concepts directly: convolution, ReLU, pooling, BatchNorm, Dropout, softmax-style multiclass classification, and cross-entropy training. The ablation study shows that BatchNorm and Dropout materially affect performance. The fine-tuned ResNet18 trained with RandAugment and MixUp achieves 98.76\% clean test accuracy and 98.33\% macro F1 on GTSRB. Calibration reduces ECE from 6.36\% to 3.04\%, and corruption testing reveals the model's strengths and limitations. The main conclusion is that strong clean performance is achievable, but reliability requires explicit model comparison, ablation, robustness testing, and safety analysis.
+This project applies deep learning methodology to a real image classification problem and extends it with robustness, calibration, interpretability, and deployment analysis. The custom CNN architecture demonstrates course concepts directly: convolution, ReLU, pooling, BatchNorm, Dropout, softmax-style multiclass classification, and cross-entropy training. The comparison between plain CNN, CNN with RandAugment/MixUp, and ResNet18 with RandAugment/MixUp shows that robust training is not a magic switch; it works best when the model has enough representational capacity and useful pretrained features. The ablation study shows that BatchNorm and Dropout materially affect the self-built CNN. The fine-tuned ResNet18 trained with RandAugment and MixUp achieves 98.76\% clean test accuracy and 98.33\% macro F1 on GTSRB. Calibration reduces ECE from 6.36\% to 3.04\%, and corruption testing reveals the model's strengths and limitations. The main conclusion is that strong clean performance is achievable, but reliability requires explicit model comparison, ablation, robustness testing, and safety analysis.
 
 \end{document}

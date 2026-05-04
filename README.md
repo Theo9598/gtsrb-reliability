@@ -15,6 +15,7 @@ The project story is: a traffic sign classifier should be accurate on clean imag
 ## What is included
 
 - Baseline CNN trained from scratch.
+- Custom CNN robust-training comparison with RandAugment and MixUp.
 - Transfer-learning model using ResNet18 or EfficientNet-B0.
 - RandAugment and MixUp for robust training.
 - Clean and corrupted test evaluation.
@@ -50,6 +51,12 @@ Fast baseline:
 
 ```powershell
 python -m gtsrb_robustness.train --model baseline_cnn --epochs 12 --batch-size 128 --output-dir runs/baseline_cnn
+```
+
+Custom CNN with robust training:
+
+```powershell
+python -m gtsrb_robustness.train --model baseline_cnn --epochs 12 --batch-size 128 --use-randaugment --mixup-alpha 0.2 --output-dir runs/baseline_cnn_augmix --num-workers 0
 ```
 
 Main model:
