@@ -29,7 +29,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model",
         default="resnet18",
-        choices=["baseline_cnn", "baseline_cnn_no_bn", "baseline_cnn_no_dropout", "resnet18", "efficientnet_b0"],
+        choices=["baseline_cnn", "baseline_cnn_no_bn", "baseline_cnn_no_dropout", "resnet18"],
     )
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--num-workers", type=int, default=4)

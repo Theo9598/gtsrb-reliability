@@ -16,7 +16,7 @@ The project story is: a traffic sign classifier should be accurate on clean imag
 
 - Baseline CNN trained from scratch.
 - Custom CNN robust-training comparison with RandAugment and MixUp.
-- Transfer-learning model using ResNet18 or EfficientNet-B0.
+- Transfer-learning model using ResNet18.
 - RandAugment and MixUp for robust training.
 - Clean and corrupted test evaluation.
 - Temperature scaling and expected calibration error.
@@ -65,12 +65,6 @@ Main model:
 
 ```powershell
 python -m gtsrb_robustness.train --model resnet18 --epochs 25 --batch-size 96 --use-randaugment --mixup-alpha 0.2 --output-dir runs/resnet18_robust
-```
-
-Optional EfficientNet-B0:
-
-```powershell
-python -m gtsrb_robustness.train --model efficientnet_b0 --epochs 25 --batch-size 64 --use-randaugment --mixup-alpha 0.2 --output-dir runs/efficientnet_b0_robust
 ```
 
 ## Evaluation
