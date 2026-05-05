@@ -49,16 +49,16 @@ python -m gtsrb_robustness.explore_data --output-dir outputs/eda
 
 ## Training
 
-Fast baseline:
+Fast baseline, main 25-epoch comparison run:
 
 ```powershell
-python -m gtsrb_robustness.train --model baseline_cnn --epochs 12 --batch-size 128 --output-dir runs/baseline_cnn
+python -m gtsrb_robustness.train --model baseline_cnn --epochs 25 --batch-size 128 --output-dir runs/baseline_cnn_25 --num-workers 0
 ```
 
-Custom CNN with robust training:
+Custom CNN with robust training, main 25-epoch comparison run:
 
 ```powershell
-python -m gtsrb_robustness.train --model baseline_cnn --epochs 12 --batch-size 128 --use-randaugment --mixup-alpha 0.2 --output-dir runs/baseline_cnn_augmix --num-workers 0
+python -m gtsrb_robustness.train --model baseline_cnn --epochs 25 --batch-size 128 --use-randaugment --mixup-alpha 0.2 --output-dir runs/baseline_cnn_augmix_25 --num-workers 0
 ```
 
 Main model:

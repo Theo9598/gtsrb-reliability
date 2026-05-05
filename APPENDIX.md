@@ -32,10 +32,10 @@ The robust-training comparison uses two additional settings: the same custom CNN
 
 All training runs use the same Hugging Face dataset `tanganke/gtsrb`, the same image size of 96 x 96, the same 43-class label space, the same stratified train/validation split, and the same final official clean test split. The split settings are `seed=242` and `val_fraction=0.15`, producing 22,644 training images and 3,996 validation images from the original training split. The official 12,630-image `test` split is reserved for final evaluation only.
 
-Custom CNN:
+Custom CNN, main 25-epoch run:
 
 ```powershell
-python -m gtsrb_robustness.train --model baseline_cnn --epochs 12 --batch-size 128 --output-dir runs/baseline_cnn
+python -m gtsrb_robustness.train --model baseline_cnn --epochs 25 --batch-size 128 --output-dir runs/baseline_cnn_25 --num-workers 0
 ```
 
 CNN ablations:
@@ -45,10 +45,10 @@ python -m gtsrb_robustness.train --model baseline_cnn_no_bn --epochs 12 --batch-
 python -m gtsrb_robustness.train --model baseline_cnn_no_dropout --epochs 12 --batch-size 128 --output-dir runs/baseline_cnn_no_dropout
 ```
 
-Custom CNN with robust training:
+Custom CNN with robust training, main 25-epoch run:
 
 ```powershell
-python -m gtsrb_robustness.train --model baseline_cnn --epochs 12 --batch-size 128 --use-randaugment --mixup-alpha 0.2 --output-dir runs/baseline_cnn_augmix --num-workers 0
+python -m gtsrb_robustness.train --model baseline_cnn --epochs 25 --batch-size 128 --use-randaugment --mixup-alpha 0.2 --output-dir runs/baseline_cnn_augmix_25 --num-workers 0
 ```
 
 Main robust ResNet18:
@@ -70,23 +70,25 @@ Custom CNN and ablation evaluation:
 ```powershell
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn/best.pt --model baseline_cnn --output-dir outputs/baseline_cnn --num-workers 0 --skip-corruptions
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_augmix/best.pt --model baseline_cnn --output-dir outputs/baseline_cnn_augmix --num-workers 0 --skip-corruptions
+python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_25/best.pt --model baseline_cnn --output-dir outputs/baseline_cnn_25 --num-workers 0 --skip-corruptions
+python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_augmix_25/best.pt --model baseline_cnn --output-dir outputs/baseline_cnn_augmix_25 --num-workers 0 --skip-corruptions
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_no_bn/best.pt --model baseline_cnn_no_bn --output-dir outputs/baseline_cnn_no_bn --num-workers 0 --skip-corruptions
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_no_dropout/best.pt --model baseline_cnn_no_dropout --output-dir outputs/baseline_cnn_no_dropout --num-workers 0 --skip-corruptions
 ```
 
 ## Main Results
 
-| Model | Best validation accuracy | Clean test accuracy | Clean test macro F1 |
-|---|---:|---:|---:|
-| Custom CNN | 78.03% | 58.99% | 39.26% |
-| Custom CNN + RandAugment/MixUp | 66.09% | 54.43% | 34.25% |
-| CNN without BatchNorm | 20.85% | 19.21% | 6.02% |
-| CNN without Dropout | 50.03% | 39.05% | 21.06% |
-| ResNet18 + RandAugment/MixUp | 99.97% | 98.76% | 98.33% |
+| Model | Epochs | Best validation accuracy | Clean test accuracy | Clean test macro F1 |
+|---|---:|---:|---:|---:|
+| Custom CNN | 25 | 94.09% | 74.07% | 61.21% |
+| Custom CNN + RandAugment/MixUp | 25 | 87.86% | 75.30% | 59.13% |
+| ResNet18 + RandAugment/MixUp | 25 | 99.97% | 98.76% | 98.33% |
+| CNN without BatchNorm | 12 | 20.85% | 19.21% | 6.02% |
+| CNN without Dropout | 12 | 50.03% | 39.05% | 21.06% |
 
 Calibration for the final ResNet18 reduced expected calibration error from 6.36% to 3.04%.
 
-The custom CNN with RandAugment/MixUp did not improve over the plain custom CNN in the 12-epoch run. This is an important ablation result: the augmentation strategy made the task harder and acted as stronger regularization, but the small CNN did not have enough capacity or training time to benefit from it. The same robust-training idea worked much better with ResNet18.
+With 25 epochs, RandAugment/MixUp improves the custom CNN's clean test accuracy slightly from 74.07% to 75.30%, but its macro F1 is lower. This shows that robust training helps some predictions but does not make the small CNN uniformly better across all classes. The same robust-training idea works much better with ResNet18.
 
 ## Diagnostic Figures
 

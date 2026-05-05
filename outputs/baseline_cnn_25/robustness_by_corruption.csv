@@ -1,0 +1,2 @@
+split,source,accuracy,accuracy_ci_low,accuracy_ci_high,macro_f1
+test,clean,0.7406967537608867,0.7330958036421219,0.7483788598574822,0.6120664320764293

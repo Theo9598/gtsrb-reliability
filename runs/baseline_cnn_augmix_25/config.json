@@ -1,0 +1,16 @@
+{
+  "model": "baseline_cnn",
+  "image_size": 96,
+  "num_classes": 43,
+  "epochs": 25,
+  "batch_size": 128,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.0001,
+  "val_fraction": 0.15,
+  "num_workers": 0,
+  "seed": 242,
+  "mixup_alpha": 0.2,
+  "use_randaugment": true,
+  "freeze_backbone_epochs": 2,
+  "output_dir": "runs\\baseline_cnn_augmix_25"
+}
