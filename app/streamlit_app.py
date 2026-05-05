@@ -82,7 +82,7 @@ def resolve_checkpoint() -> str | None:
 
 with st.sidebar:
     st.title("GTSRB Workbench")
-    model_name = st.selectbox("Model", ["resnet18", "efficientnet_b0", "baseline_cnn"], index=0)
+    model_name = st.selectbox("Model", ["resnet18", "baseline_cnn"], index=0)
     checkpoint = st.text_input("Checkpoint path", value=resolve_checkpoint() or "")
     temperature = st.number_input(
         "Calibration temperature",
