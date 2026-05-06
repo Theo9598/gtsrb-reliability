@@ -90,12 +90,10 @@ streamlit run app/streamlit_app.py
 
 For Hugging Face Spaces, set the Space SDK to Streamlit and use `app/streamlit_app.py` as the entry file. Include a trained checkpoint in the Space or configure `GTSRB_CHECKPOINT`.
 
-## Report assets checklist
+## Final Report Assets
 
-- `outputs/eda/class_distribution.png`
-- `outputs/eda/sample_grid.png`
-- `runs/*/history.csv`
-- `outputs/*/confusion_matrix.png`
-- `outputs/*/robustness_by_corruption.png`
-- `outputs/*/reliability_diagram.png`
-- `outputs/*/error_examples.png`
+- `reports/submission_report_final_cnn_ablation.pdf`
+- `outputs/cnn_augmix_resnet_comparison.png`
+- `outputs/resnet18_robust/training_curves.png`
+- `outputs/resnet18_robust/robustness_by_corruption.png`
+- `outputs/resnet18_robust/reliability_diagram.png`

@@ -69,7 +69,6 @@ Custom CNN and ablation evaluation:
 
 ```powershell
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn/best.pt --model baseline_cnn --output-dir outputs/baseline_cnn --num-workers 0 --skip-corruptions
-python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_augmix/best.pt --model baseline_cnn --output-dir outputs/baseline_cnn_augmix --num-workers 0 --skip-corruptions
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_25/best.pt --model baseline_cnn --output-dir outputs/baseline_cnn_25 --num-workers 0 --skip-corruptions
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_augmix_25/best.pt --model baseline_cnn --output-dir outputs/baseline_cnn_augmix_25 --num-workers 0 --skip-corruptions
 python -m gtsrb_robustness.evaluate --checkpoint runs/baseline_cnn_no_bn/best.pt --model baseline_cnn_no_bn --output-dir outputs/baseline_cnn_no_bn --num-workers 0 --skip-corruptions
@@ -94,7 +93,6 @@ With 25 epochs, RandAugment/MixUp improves the custom CNN's clean test accuracy 
 
 Core figures:
 
-- `outputs/model_comparison_ablation.png`
 - `outputs/cnn_augmix_resnet_comparison.png`
 - `outputs/resnet18_robust/training_curves.png`
 - `outputs/resnet18_robust/robustness_by_corruption.png`

@@ -49,13 +49,11 @@
 
 Course: INDENG 1/242B Final Project
 
-Team: [Insert names]
+Student: Theo
 
 Interactive demo: \url{https://huggingface.co/spaces/Theo9598/gtsrb-reliability-workbench}
 
 GitHub appendix: \url{https://github.com/Theo9598/gtsrb-reliability/blob/master/APPENDIX.md}
-
-Presentation recording: [Insert recording link before Gradescope submission]
 
 \section*{Abstract}
 We study traffic sign recognition as a 43-class image classification task using the German Traffic Sign Recognition Benchmark (GTSRB). To match the course emphasis on building a model, we train our own convolutional neural network from scratch and compare it against two stronger training conditions: the same CNN with RandAugment and MixUp, and an ImageNet-pretrained ResNet18 with RandAugment and MixUp. All three main comparison models are trained for 25 epochs under the same train/validation/test protocol. The custom CNN reaches 74.07\% clean test accuracy, the custom CNN with robust training reaches 75.30\%, and the final ResNet18 reaches 98.76\% accuracy and 98.33\% macro F1. This result shows that robust augmentation helps the CNN slightly on clean accuracy, but transfer learning and higher model capacity are still the main drivers of strong performance. We also run a CNN ablation study: removing BatchNorm drops clean test accuracy to 19.21\%, and removing Dropout drops it to 39.05\%, showing why these course concepts matter. Because traffic sign recognition is safety-relevant, we evaluate visual corruptions, apply temperature scaling to reduce expected calibration error from 6.36\% to 3.04\%, and deploy a Streamlit demo with upload, corruption, top-5 prediction, and Grad-CAM features.
