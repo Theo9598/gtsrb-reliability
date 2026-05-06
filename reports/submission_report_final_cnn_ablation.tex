@@ -68,7 +68,9 @@ We formulate the task as supervised multiclass classification. Each input $X_i$ 
 where $R(\theta)$ includes weight decay, data augmentation, MixUp, and validation-based checkpoint selection.
 
 \section{Data}
-We use the Hugging Face GTSRB dataset \texttt{tanganke/gtsrb}, with 26,640 training images and 12,630 official test images over 43 classes. All model comparisons use the same data protocol: the original training split is divided once into a 22,644-image training subset and a 3,996-image validation subset using a stratified split with seed 242 and validation fraction 0.15. The official 12,630-image clean test split is never used for training or validation checkpoint selection; it is used only for final evaluation. Images are resized to 96 by 96 pixels and normalized using ImageNet mean and standard deviation to match the pretrained ResNet18 backbone.
+We use the Hugging Face GTSRB dataset \texttt{tanganke/gtsrb}. Dataset URL: \url{https://huggingface.co/datasets/tanganke/gtsrb}.
+
+It contains 26,640 training images and 12,630 official test images over 43 classes. All model comparisons use the same data protocol: the original training split is divided once into a 22,644-image training subset and a 3,996-image validation subset using a stratified split with seed 242 and validation fraction 0.15. The official 12,630-image clean test split is never used for training or validation checkpoint selection; it is used only for final evaluation. Images are resized to 96 by 96 pixels and normalized using ImageNet mean and standard deviation to match the pretrained ResNet18 backbone.
 
 The dataset contains cropped signs, so this project studies classification rather than object detection in full road scenes. To measure reliability, we evaluate on both locally generated corruptions and the dataset's corrupted splits. Local corruptions include Gaussian noise, blur, JPEG compression, pixelation, and low contrast. The provided corrupted splits include contrast, Gaussian noise, impulse noise, JPEG compression, motion blur, pixelate, and spatter. This lets us compare clean benchmark performance to performance under degraded visual conditions.
 
