@@ -16,7 +16,6 @@ if str(SRC) not in sys.path:
 from gtsrb_robustness.corruptions import DEMO_CORRUPTIONS
 from gtsrb_robustness.inference import (
     gradcam_overlay,
-    infer_model_name_from_checkpoint,
     load_model_for_inference,
     predict_topk,
 )
@@ -69,19 +68,15 @@ st.markdown(
 
 
 @st.cache_resource(show_spinner=False)
-def cached_model(checkpoint: str):
-    return load_model_for_inference(Path(checkpoint))
+def cached_model(checkpoint: str, model_name: str):
+    return load_model_for_inference(Path(checkpoint), model_name)
 
 
-@st.cache_data(show_spinner=False)
-def cached_checkpoint_model_name(checkpoint: str) -> str:
-    return infer_model_name_from_checkpoint(Path(checkpoint))
-
-
-def resolve_checkpoint() -> str | None:
+def resolve_resnet_checkpoint() -> str | None:
     candidates = [
         os.getenv("GTSRB_CHECKPOINT"),
         str(ROOT / "runs" / "resnet18_robust" / "best.pt"),
+        str(ROOT / "checkpoints" / "resnet18_best.pt"),
         str(ROOT / "checkpoints" / "best.pt"),
     ]
     for candidate in candidates:
@@ -90,11 +85,30 @@ def resolve_checkpoint() -> str | None:
     return None
 
 
+def resolve_baseline_checkpoint() -> str | None:
+    candidates = [
+        os.getenv("GTSRB_BASELINE_CHECKPOINT"),
+        str(ROOT / "runs" / "baseline_cnn_25" / "best.pt"),
+        str(ROOT / "checkpoints" / "baseline_cnn_25_best.pt"),
+    ]
+    for candidate in candidates:
+        if candidate and Path(candidate).exists():
+            return candidate
+    return None
+
+
+def checkpoint_for_model(model_name: str) -> str | None:
+    if model_name == "baseline_cnn":
+        return resolve_baseline_checkpoint()
+    return resolve_resnet_checkpoint()
+
+
 with st.sidebar:
     st.title("GTSRB Workbench")
-    checkpoint = st.text_input("Checkpoint path", value=resolve_checkpoint() or "")
-    if checkpoint and Path(checkpoint).exists():
-        st.caption(f"Detected model: `{cached_checkpoint_model_name(checkpoint)}`")
+    model_name = st.selectbox("Model", ["resnet18", "baseline_cnn"], index=0)
+    checkpoint = checkpoint_for_model(model_name)
+    if checkpoint:
+        st.caption(f"Checkpoint: `{Path(checkpoint).name}`")
     temperature = st.number_input(
         "Calibration temperature",
         min_value=0.05,
@@ -103,7 +117,7 @@ with st.sidebar:
         step=0.05,
     )
     corruption_name = st.selectbox("Apply corruption", list(DEMO_CORRUPTIONS.keys()), index=0)
-    st.caption("Use a trained checkpoint for live predictions. Without one, the app still previews the interaction shell.")
+    st.caption("Choose a model architecture. The app automatically loads the matching trained checkpoint.")
 
 st.title("Traffic Sign Reliability Workbench")
 st.write("Upload a cropped traffic sign image, inspect top predictions, and compare the model's attention under realistic corruptions.")
@@ -111,7 +125,7 @@ st.write("Upload a cropped traffic sign image, inspect top predictions, and comp
 uploaded = st.file_uploader("Upload traffic sign image", type=["png", "jpg", "jpeg", "webp"])
 
 if not checkpoint or not Path(checkpoint).exists():
-    st.warning("No checkpoint found. Train a model first or set `GTSRB_CHECKPOINT` to a valid `.pt` file.")
+    st.warning("No matching checkpoint found for the selected model.")
 
 if uploaded is None:
     st.info("Upload an image to run inference.")
@@ -127,7 +141,7 @@ else:
 
     if checkpoint and Path(checkpoint).exists():
         with st.spinner("Running model..."):
-            model, device, model_name = cached_model(checkpoint)
+            model, device, model_name = cached_model(checkpoint, model_name)
             predictions = predict_topk(model, device, shown, k=5, temperature=temperature)
             try:
                 cam_image = gradcam_overlay(model, device, shown)
