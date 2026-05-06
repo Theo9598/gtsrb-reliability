@@ -14,7 +14,12 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from gtsrb_robustness.corruptions import DEMO_CORRUPTIONS
-from gtsrb_robustness.inference import gradcam_overlay, load_model_for_inference, predict_topk
+from gtsrb_robustness.inference import (
+    gradcam_overlay,
+    infer_model_name_from_checkpoint,
+    load_model_for_inference,
+    predict_topk,
+)
 
 
 st.set_page_config(
@@ -64,8 +69,13 @@ st.markdown(
 
 
 @st.cache_resource(show_spinner=False)
-def cached_model(checkpoint: str, model_name: str):
-    return load_model_for_inference(Path(checkpoint), model_name)
+def cached_model(checkpoint: str):
+    return load_model_for_inference(Path(checkpoint))
+
+
+@st.cache_data(show_spinner=False)
+def cached_checkpoint_model_name(checkpoint: str) -> str:
+    return infer_model_name_from_checkpoint(Path(checkpoint))
 
 
 def resolve_checkpoint() -> str | None:
@@ -82,8 +92,9 @@ def resolve_checkpoint() -> str | None:
 
 with st.sidebar:
     st.title("GTSRB Workbench")
-    model_name = st.selectbox("Model", ["resnet18", "baseline_cnn"], index=0)
     checkpoint = st.text_input("Checkpoint path", value=resolve_checkpoint() or "")
+    if checkpoint and Path(checkpoint).exists():
+        st.caption(f"Detected model: `{cached_checkpoint_model_name(checkpoint)}`")
     temperature = st.number_input(
         "Calibration temperature",
         min_value=0.05,
@@ -116,7 +127,7 @@ else:
 
     if checkpoint and Path(checkpoint).exists():
         with st.spinner("Running model..."):
-            model, device = cached_model(checkpoint, model_name)
+            model, device, model_name = cached_model(checkpoint)
             predictions = predict_topk(model, device, shown, k=5, temperature=temperature)
             try:
                 cam_image = gradcam_overlay(model, device, shown)
@@ -130,7 +141,7 @@ else:
             <div class="metric-strip">
               <div class="metric-cell"><span>Top class</span><strong>{top["class_id"]}</strong></div>
               <div class="metric-cell"><span>Confidence</span><strong>{top["probability"]:.1%}</strong></div>
-              <div class="metric-cell"><span>Device</span><strong>{device.type.upper()}</strong></div>
+              <div class="metric-cell"><span>Model</span><strong>{model_name}</strong></div>
             </div>
             """,
             unsafe_allow_html=True,

@@ -11,18 +11,32 @@ from .labels import GTSRB_LABELS, NUM_CLASSES
 from .models import build_model
 
 
-def load_model_for_inference(checkpoint: Path, model_name: str = "resnet18"):
+def load_checkpoint_state(checkpoint: Path, device=None):
+    import torch
+
+    map_location = device if device is not None else "cpu"
+    try:
+        return torch.load(checkpoint, map_location=map_location)
+    except Exception:
+        return torch.load(checkpoint, map_location=map_location, weights_only=False)
+
+
+def infer_model_name_from_checkpoint(checkpoint: Path, default: str = "resnet18") -> str:
+    state = load_checkpoint_state(checkpoint)
+    config = state.get("config", {}) if isinstance(state, dict) else {}
+    return str(config.get("model") or default)
+
+
+def load_model_for_inference(checkpoint: Path, model_name: str | None = None):
     import torch
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = build_model(model_name, NUM_CLASSES, pretrained=False).to(device)
-    try:
-        state = torch.load(checkpoint, map_location=device)
-    except Exception:
-        state = torch.load(checkpoint, map_location=device, weights_only=False)
+    state = load_checkpoint_state(checkpoint, device=device)
+    resolved_model = model_name or str(state.get("config", {}).get("model") or "resnet18")
+    model = build_model(resolved_model, NUM_CLASSES, pretrained=False).to(device)
     model.load_state_dict(state["model_state_dict"])
     model.eval()
-    return model, device
+    return model, device, resolved_model
 
 
 def preprocess_image(image: Image.Image):
